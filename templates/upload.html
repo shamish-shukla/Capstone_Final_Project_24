@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alzheimer's Disease Prediction</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      /* Your existing styles */
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+      }
+      .bg {
+        /* Full height */
+        background-image: url("/static/bg3.png");
+        height: 100%;
+
+        /* Center and scale the image nicely */
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+
+        /* Added a backdrop filter for better readability of the text over the image */
+        backdrop-filter: blur(5px);
+      }
+      .container {
+        max-width: 500px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+      }
+      .predict-btn {
+        display: block;
+        width: 100%;
+      }
+      /* Style for the result display */
+      #result {
+        margin-top: 20px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg">
+      <div class="container">
+        <h2 class="text-center">Upload an Image for Prediction</h2>
+        <p class="text-center">
+          This application helps predict the likelihood of Alzheimer's disease
+          based on an image.
+        </p>
+
+        <div class="img-preview" id="img-preview"></div>
+
+        <form id="upload-form" enctype="multipart/form-data">
+          <div class="custom-file">
+            <input
+              type="file"
+              class="custom-file-input"
+              id="file"
+              name="file"
+              required
+              onchange="previewFile()"
+            />
+            <label class="custom-file-label" for="file">Choose file</label>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary mt-3 predict-btn"
+            id="submit-btn"
+          >
+            Predict
+          </button>
+        </form>
+
+        <div id="result" class="alert alert-info"></div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+      function previewFile() {
+        const preview = document.getElementById("img-preview");
+        const file = document.querySelector("input[type=file]").files[0];
+        const reader = new FileReader();
+
+        reader.addEventListener(
+          "load",
+          function () {
+            preview.innerHTML =
+              '<img src="' +
+              reader.result +
+              '" class="img-fluid" alt="Image Preview">';
+          },
+          false
+        );
+
+        if (file) {
+          reader.readAsDataURL(file);
+        }
+      }
+
+      $("#submit-btn").click(function () {
+        var formData = new FormData();
+        formData.append("file", $("#file")[0].files[0]);
+
+        $.ajax({
+          url: "/predict",
+          type: "POST",
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+            $("#result").text(response.prediction).show(); // Access the 'prediction' property of the response
+          },
+
+          error: function () {
+            $("#result").text("Error making prediction").show();
+          },
+        });
+      });
+
+      $(".custom-file-input").on("change", function () {
+        let fileName = $(this).val().split("\\").pop();
+        $(this).next(".custom-file-label").addClass("selected").html(fileName);
+      });
+    </script>
+  </body>
+</html>
